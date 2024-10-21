@@ -23,7 +23,7 @@ beforeEach(async () => {
   // Get a list of all accounts
   accounts = await web3.eth.getAccounts();
   // use one of those accounts to deploy the contract (instance of a contract as it cpaital C)
-  // new contract
+  // new contract called inbox
   inbox = await new web3.eth.Contract(JSON.parse(interface))
     .deploy({
       data: bytecode,
@@ -32,9 +32,30 @@ beforeEach(async () => {
     .send({ from: accounts[0], gas: "1000000" });
 });
 
+
+// ------------ 3 tests below --------------
+
+// we deployed the contract and check by asserting.ok if within inbox options there is an address
 describe("Inbox", () => {
   it("deploys a contract", () => {
-    console.log(inbox);
+    //if you want to print inbox in cmd then uncomment
+    //console.log(inbox);
+    assert.ok(inbox.options.address);
+  });
+
+  //call method to find the message od contract - only used to read contract
+  it('has a default message', async () => {
+    const message = await inbox.methods.message().call();
+    assert.equal(message, 'Hi there!');
+  });
+  
+  //test to change message and print it
+  it('can change the message', async () => {
+    //we send the message once we changed it and explain who is paying the gas which is a ganache account 0
+    await inbox.methods.setMessage('bye').send({ from: accounts[0] });
+    //print message
+    const message = await inbox.methods.message().call();
+    assert.equal(message, 'bye');
   });
 });
 
